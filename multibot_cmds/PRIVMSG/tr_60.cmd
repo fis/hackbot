@@ -14,8 +14,8 @@ ignored_nicks = ['Lymia', 'Lymee', 'Madoka-Kaname']
 
 help_text = '''\
 Runs arbitrary code in GNU/Linux. Type "`<command>", or "`run \
-<command>" for full shell commands. "`fetch <URL>" downloads \
-files. Files saved to $PWD are persistent, and $PWD/bin is in \
+<command>" for full shell commands. "`fetch [<output-file>] <URL>" \
+downloads files. Files saved to $PWD are persistent, and $PWD/bin is in \
 $PATH. $PWD is a mercurial repository, "`revert <rev>" can be used to \
 revert to a revision. See http://codu.org/projects/hackbot/fshg/\
 '''
