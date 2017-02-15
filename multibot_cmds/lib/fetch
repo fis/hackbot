@@ -2,14 +2,42 @@
 
 import sys
 import os
+import os.path
 import signal
 import resource
 import subprocess
 
+hackenv = os.path.join(os.path.realpath(os.environ['HACKENV']), '')
+url = sys.argv[1]
+output = None
+
+if not url:
+    sys.stdout.write('Usage:  fetch URL  or  fetch OUTPUT_FILE URL  (no spaces or quoting in OUTPUT_FILE)')
+    sys.exit(1)
+
+parts = url.split(None, 1)
+if len(parts) == 2:
+    output, url = parts
+
+cmd = ['wget', '-nv']
+if output is not None:
+    real_output = os.path.realpath(os.path.join(hackenv, output))
+    if os.path.commonprefix([hackenv, real_output]) != hackenv:
+        sys.stdout.write('In another world: ' + output)
+        sys.exit(1)
+    if os.path.isdir(real_output):
+        sys.stdout.write("That's a directory: " + output)
+        sys.exit(1)
+    cmd.extend(['-O', real_output])
+cmd.extend(['--', url])
+
 # resource.setrlimit(resource.RLIMIT_FSIZE, (10240, 10240))
 signal.alarm(30)
-sys.stdout.write(subprocess.Popen(
-    ['wget', '-nv', sys.argv[1]],
+status = subprocess.Popen(
+    cmd,
     stdout=subprocess.PIPE,
     stderr=subprocess.STDOUT,
-    cwd=os.environ['HACKENV']).communicate()[0])
+    cwd=hackenv).communicate()[0]
+if output is not None:
+    status = status.replace(hackenv, '', 1)
+sys.stdout.write(status)
