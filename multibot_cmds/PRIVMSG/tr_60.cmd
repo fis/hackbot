@@ -36,17 +36,22 @@ def calldevnull(*args):
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
     p.communicate()
 
-def callLimit(args):
+def callLimit(args, exclusive):
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
     p.stdin.close()
     ret = p.stdout.read(1024)
     p.stdout.close()
     p.wait()
-    # Make sure $HACKENV/.hg is accessible by forcing sane permissions on $HACKENV
     try:
-        mode = stat.S_IMODE(os.stat(os.environ['HACKENV']).st_mode)
-        if mode & stat.S_IRWXU != stat.S_IRWXU:
-            os.chmod(os.environ['HACKENV'], mode | stat.S_IRWXU)
+        # Make sure $HACKENV/.hg is accessible by forcing sane permissions on $HACKENV / .hgignore
+        os.chmod(os.environ['HACKENV'], stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+        hgignore = os.path.join(os.environ['HACKENV'], '.hgignore')
+        os.chmod(hgignore, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
+        if exclusive:
+            # Ensure the .hgignore file is pristine
+            if os.path.isdir(hgignore):
+                shutil.rmtree(hgignore, ignore_errors=True)
+            calldevnull("hg", "revert", "-R", os.environ['HACKENV'], "--cwd", os.environ['HACKENV'], "--no-backup", ".hgignore")
     except:
         pass
     return ret
@@ -84,7 +89,7 @@ def transact(log, always_exclusive, args):
     if not always_exclusive:
         fcntl.flock(lockf, fcntl.LOCK_SH)
 
-        output = callLimit(args)
+        output = callLimit(args, False)
 
         # Check if we wrote
         status = subprocess.Popen(["hg", "status", "-R", os.environ['HACKENV'], "-rumad"],
@@ -100,14 +105,7 @@ def transact(log, always_exclusive, args):
         cleanWorkdir()
 
         # Run again
-        output = callLimit(args)
-
-        # Ensure the .hgignore file is pristine
-        hgignore = os.path.join(os.environ['HACKENV'], '.hgignore')
-        if os.path.isdir(hgignore):
-            shutil.rmtree(hgignore, ignore_errors=True)
-        os.chmod(hgignore, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
-        calldevnull("hg", "revert", "-R", os.environ['HACKENV'], "--cwd", os.environ['HACKENV'], "--no-backup", ".hgignore")
+        output = callLimit(args, True)
 
         # And commit (or cleanup if blocked by canary)
         if os.path.exists(os.path.join(os.environ['HACKENV'], "canary")):
