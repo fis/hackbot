@@ -106,6 +106,7 @@ def transact(log, always_exclusive, args):
         hgignore = os.path.join(os.environ['HACKENV'], '.hgignore')
         if os.path.isdir(hgignore):
             shutil.rmtree(hgignore, ignore_errors=True)
+        os.chmod(hgignore, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
         calldevnull("hg", "revert", "-R", os.environ['HACKENV'], "--cwd", os.environ['HACKENV'], "--no-backup", ".hgignore")
 
         # And commit (or cleanup if blocked by canary)
