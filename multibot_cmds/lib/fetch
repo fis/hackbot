@@ -8,6 +8,7 @@ import resource
 import subprocess
 
 hackenv = os.path.join(os.path.realpath(os.environ['HACKENV']), '')
+hackenv_hg = os.path.join(hackenv, '.hg', '')
 url = sys.argv[1]
 output = None
 
@@ -22,7 +23,8 @@ if len(parts) == 2:
 cmd = ['wget', '-nv']
 if output is not None:
     real_output = os.path.realpath(os.path.join(hackenv, output))
-    if os.path.commonprefix([hackenv, real_output]) != hackenv:
+    if (os.path.commonprefix([hackenv, real_output]) != hackenv
+        or os.path.commonprefix([hackenv_hg, real_output]) == hackenv_hg):
         sys.stdout.write('In another world: ' + output)
         sys.exit(1)
     if os.path.isdir(real_output):
