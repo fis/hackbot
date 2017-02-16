@@ -3,6 +3,7 @@
 
 import sys
 import os
+import shutil
 import socket
 import stat
 import string
@@ -100,6 +101,12 @@ def transact(log, always_exclusive, args):
 
         # Run again
         output = callLimit(args)
+
+        # Ensure the .hgignore file is pristine
+        hgignore = os.path.join(os.environ['HACKENV'], '.hgignore')
+        if os.path.isdir(hgignore):
+            shutil.rmtree(hgignore, ignore_errors=True)
+        calldevnull("hg", "revert", "-R", os.environ['HACKENV'], "--cwd", os.environ['HACKENV'], "--no-backup", ".hgignore")
 
         # And commit (or cleanup if blocked by canary)
         if os.path.exists(os.path.join(os.environ['HACKENV'], "canary")):
