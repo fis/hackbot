@@ -22,6 +22,8 @@ if len(parts) == 2:
 
 cmd = ['wget', '-nv']
 if output is not None:
+    if output.startswith('/hackenv/'):
+        output = output[9:]
     real_output = os.path.realpath(os.path.join(hackenv, output))
     if (os.path.commonprefix([hackenv, real_output]) != hackenv
         or os.path.commonprefix([hackenv_hg, real_output]) == hackenv_hg):
