@@ -32,6 +32,14 @@ if not channel.startswith('#'):
 def say(text):
     irc.send('PRIVMSG %s :%s\n' % (channel, text))
 
+def chmod_sane(path, executable):
+    mode = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
+    if executable: mode |= stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+    try:
+        os.chmod(path, mode)
+    except OSError:
+        pass  # well, we tried
+
 def calldevnull(*args):
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
     p.communicate()
@@ -42,18 +50,15 @@ def callLimit(args, exclusive):
     ret = p.stdout.read(1024)
     p.stdout.close()
     p.wait()
-    try:
-        # Make sure $HACKENV/.hg is accessible by forcing sane permissions on $HACKENV / .hgignore
-        os.chmod(os.environ['HACKENV'], stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
-        hgignore = os.path.join(os.environ['HACKENV'], '.hgignore')
-        os.chmod(hgignore, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
-        if exclusive:
-            # Ensure the .hgignore file is pristine
-            if os.path.isdir(hgignore):
-                shutil.rmtree(hgignore, ignore_errors=True)
-            calldevnull("hg", "revert", "-R", os.environ['HACKENV'], "--cwd", os.environ['HACKENV'], "--no-backup", ".hgignore")
-    except:
-        pass
+    # Make sure $HACKENV/.hg is accessible by forcing sane permissions on $HACKENV / .hgignore
+    chmod_sane(os.environ['HACKENV'], executable=True)
+    hgignore = os.path.join(os.environ['HACKENV'], '.hgignore')
+    chmod_sane(hgignore, executable=False)
+    if exclusive:
+        # Ensure the .hgignore file is pristine
+        if os.path.isdir(hgignore):
+            shutil.rmtree(hgignore, ignore_errors=True)
+        calldevnull("hg", "revert", "-R", os.environ['HACKENV'], "--cwd", os.environ['HACKENV'], "--no-backup", ".hgignore")
     return ret
 
 def truncate(str):
