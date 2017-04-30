@@ -143,7 +143,7 @@ if any(os.environ['IRC_NICK'].startswith(ignore) for ignore in ignored_nicks):
     say('Mmmmm... no.')
     sys.exit(1)
 
-if command == 'help':
+if command == 'help' and len(parts) == 1:
     say(help_text)
 elif command == 'fetch':
     transact('fetch ' + arg, True, ['lib/fetch', arg])
