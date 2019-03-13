@@ -20,6 +20,8 @@ subprocess.call(
      '--env', 'PATH=' + path,
      '--env', 'HACKENV=/hackenv',
      '--env', 'IRC_NICK=' + os.environ['IRC_NICK'],
+     '--env', 'IRC_IDENT=' + os.environ['IRC_IDENT'],
+     '--env', 'IRC_HOST=' + os.environ['IRC_HOST'],
      '--env', 'http_proxy=' + http_proxy,
      '--timeout', '30',
      os.path.join(lib, 'limits')] + sys.argv[1:])
