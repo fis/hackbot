@@ -64,9 +64,9 @@ def callLimit(args, exclusive):
 def truncate(str):
     try:
         str.decode("utf-8")
-        str = str[:350].decode("utf-8", "ignore").encode("utf-8")
+        str = str[:460].decode("utf-8", "ignore").encode("utf-8")
     except:
-        str = str[:350]
+        str = str[:460]
     return str
 
 def cleanWorkdir():
