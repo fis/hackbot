@@ -17,6 +17,9 @@ subprocess.call(
      '--translate-write', '/hackenv', os.environ['HACKENV'],
      '--translate', '/hackenv/.hg', os.path.join(os.environ['HACKENV'], '.hg'),
      '--cwd', '/hackenv',
+     '--env', 'PATH=' + path,
+     '--env', 'HACKENV=/hackenv',
+     '--env', 'IRC_NICK=' + os.environ['IRC_NICK'],
+     '--env', 'http_proxy=' + http_proxy,
      '--timeout', '30',
-     'env', 'PATH=' + path, 'HACKENV=/hackenv', 'http_proxy=' + http_proxy,
      os.path.join(lib, 'limits')] + sys.argv[1:])
