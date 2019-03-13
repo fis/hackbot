@@ -5,7 +5,7 @@ import sys
 import subprocess
 
 http_proxy = 'http://127.0.0.1:3128'
-path = '/hackenv/bin:/opt/python27/bin:/opt/ghc/bin:/usr/bin:/bin'
+path = '/hackenv/bin:/usr/bin:/bin'
 lib = os.path.abspath('lib')
 
 subprocess.call(
