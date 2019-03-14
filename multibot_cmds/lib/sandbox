@@ -22,6 +22,9 @@ subprocess.call(
      '--env', 'IRC_NICK=' + os.environ['IRC_NICK'],
      '--env', 'IRC_IDENT=' + os.environ['IRC_IDENT'],
      '--env', 'IRC_HOST=' + os.environ['IRC_HOST'],
+     '--env', 'IRC_COMMAND=' + os.environ['IRC_COMMAND'],
+     '--env', 'IRC_TARGET=' + os.environ['IRC_TARGET'],
+     '--env', 'IRC_MESSAGE=' + os.environ['IRC_MESSAGE'],
      '--env', 'http_proxy=' + http_proxy,
      '--timeout', '30',
      os.path.join(lib, 'limits')] + sys.argv[1:])
