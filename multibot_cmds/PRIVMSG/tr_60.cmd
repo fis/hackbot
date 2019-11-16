@@ -14,11 +14,12 @@ import re
 ignored_nicks = ['Lymia', 'Lymee', 'Madoka-Kaname']
 
 help_text = '''\
-Runs arbitrary code in GNU/Linux. Type "`<command>", or "`run \
-<command>" for full shell commands. "`fetch [<output-file>] <URL>" \
-downloads files. Files saved to $PWD are persistent, and $PWD/bin is in \
-$PATH. $PWD is a mercurial repository, "`revert <rev>" can be used to \
-revert to a revision. See http://codu.org/projects/hackbot/fshg/\
+Runs arbitrary code in GNU/Linux. Type "`<command>", or "`run <command>" \
+for full shell commands. "`fetch [<output-file>] <URL>" downloads files. \
+Files saved to $HACKENV are persistent, and $HACKENV/bin is in $PATH. \
+$HACKENV is a mercurial repository, "`revert <rev>" can be used to revert, \
+https://hack.esolangs.org/repo/ to browse. $PWD ($HACKENV/tmp) is persistent \
+but unversioned, /tmp is ephemeral.\
 '''
 
 irc = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
@@ -32,13 +33,18 @@ if not channel.startswith('#'):
 def say(text):
     irc.send('PRIVMSG %s :%s\n' % (channel, text))
 
-def chmod_sane(path, executable):
+def chmod_sane(path, executable, recursive):
     mode = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
     if executable: mode |= stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
     try:
         os.chmod(path, mode)
     except OSError:
         pass  # well, we tried
+    if recursive and os.path.isdir(path):
+        for f in os.path.listdir(path):
+            d = os.path.join(path, f)
+            if os.path.isdir(d):
+                chmod_sane(d, executable=True, recursive=True)
 
 def calldevnull(*args):
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
@@ -51,14 +57,30 @@ def callLimit(args, exclusive):
     p.stdout.close()
     p.wait()
     # Make sure $HACKENV/.hg is accessible by forcing sane permissions on $HACKENV / .hgignore
-    chmod_sane(os.environ['HACKENV'], executable=True)
+    chmod_sane(os.environ['HACKENV'], executable=True, recursive=False)
+    # Ensure the .hgignore file is pristine
     hgignore = os.path.join(os.environ['HACKENV'], '.hgignore')
-    chmod_sane(hgignore, executable=False)
-    if exclusive:
-        # Ensure the .hgignore file is pristine
-        if os.path.isdir(hgignore):
-            shutil.rmtree(hgignore, ignore_errors=True)
-        calldevnull("hg", "revert", "-R", os.environ['HACKENV'], "--cwd", os.environ['HACKENV'], "--no-backup", ".hgignore")
+    if os.path.isdir(hgignore):
+        chmod_sane(hgignore, executable=True, recursive=True)
+        shutil.rmtree(hgignore, ignore_errors=True)
+    elif os.path.islink(hgignore) or not os.path.isfile(hgignore):
+        try:
+            os.unlink(hgignore)
+        except OSError:
+            pass
+    else:
+        chmod_sane(hgignore, executable=False, recursive=False)
+    calldevnull("hg", "revert", "-R", os.environ['HACKENV'], "--cwd", os.environ['HACKENV'], "--no-backup", ".hgignore")
+    # Ensure the unversioned directory remains a directory & accessible
+    tmp = os.path.join(os.environ['HACKENV'], 'tmp')
+    if not os.path.isdir(tmp):
+        try:
+            os.unlink(tmp)
+            os.mkdir(tmp, mode=0o755)
+        except OSError:
+            pass
+    else:
+        chmod_sane(tmp, executable=True, recursive=False)
     return ret
 
 def truncate(str):

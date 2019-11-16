@@ -16,7 +16,7 @@ subprocess.call(
      '--mount', lib,
      '--translate-write', '/hackenv', os.environ['HACKENV'],
      '--translate', '/hackenv/.hg', os.path.join(os.environ['HACKENV'], '.hg'),
-     '--cwd', '/hackenv',
+     '--cwd', '/hackenv/tmp',
      '--env', 'PATH=' + path,
      '--env', 'HACKENV=/hackenv',
      '--env', 'IRC_NICK=' + os.environ['IRC_NICK'],
