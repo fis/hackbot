@@ -6,14 +6,12 @@ import subprocess
 
 http_proxy = 'http://127.0.0.1:3128'
 path = '/hackenv/bin:/usr/bin:/bin'
-lib = os.path.abspath('lib')
 
 subprocess.run(
     ['nice', '-n10',
      '/usr/bin/umlbox',
      '--no-stdin',
      '--base-mounts',
-     '--mount', lib,
      '--translate-write', '/hackenv', os.environ['HACKENV'],
      '--translate', '/hackenv/.hg', os.path.join(os.environ['HACKENV'], '.hg'),
      '--cwd', '/hackenv/tmp',
@@ -27,5 +25,7 @@ subprocess.run(
      '--env', 'IRC_MESSAGE=' + os.environ['IRC_MESSAGE'],
      '--env', 'http_proxy=' + http_proxy,
      '--timeout', '30',
-     '--',
-     os.path.join(lib, 'limits')] + sys.argv[1:])
+     '--limit', 'FSIZE', '10485760',
+     '--limit', 'MEMLOCK', '0',
+     '--limit', 'NPROC', '128',
+     '--'] + sys.argv[1:])
