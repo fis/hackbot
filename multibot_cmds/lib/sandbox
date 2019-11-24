@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -8,7 +8,7 @@ http_proxy = 'http://127.0.0.1:3128'
 path = '/hackenv/bin:/usr/bin:/bin'
 lib = os.path.abspath('lib')
 
-subprocess.call(
+subprocess.run(
     ['nice', '-n10',
      '/usr/bin/umlbox',
      '--no-stdin',
@@ -27,4 +27,5 @@ subprocess.call(
      '--env', 'IRC_MESSAGE=' + os.environ['IRC_MESSAGE'],
      '--env', 'http_proxy=' + http_proxy,
      '--timeout', '30',
+     '--',
      os.path.join(lib, 'limits')] + sys.argv[1:])
