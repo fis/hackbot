@@ -38,7 +38,7 @@ if output is not None:
     cmd.extend(['-O', real_output])
 cmd.extend(['--', url])
 
-# resource.setrlimit(resource.RLIMIT_FSIZE, (10240, 10240))
+resource.setrlimit(resource.RLIMIT_FSIZE, (10240, 10240))
 signal.alarm(30)
 status = subprocess.Popen(
     cmd,
