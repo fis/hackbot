@@ -153,7 +153,7 @@ def transact(log, always_exclusive, args):
     if not re.match("^[A-Za-z0-9_]", output):
         output = "\xe2\x80\x8b" + output
 
-    output = string.replace(string.replace(string.replace(output, "\n", " \\ "), "\x01", "."), "\x00", ".")
+    output = string.replace(string.replace(string.replace(string.replace(output, "\n", " \\ "), "\x01", "."), "\x00", "."), "\r", ".")
     output = truncate(output)
     say(output)
 
