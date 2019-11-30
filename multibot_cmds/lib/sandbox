@@ -28,4 +28,5 @@ subprocess.run(
      '--limit', 'FSIZE', '10485760',
      '--limit', 'MEMLOCK', '0',
      '--limit', 'NPROC', '128',
+     '--random', '512',
      '--'] + sys.argv[1:])
